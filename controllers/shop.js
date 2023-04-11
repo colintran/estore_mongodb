@@ -1,4 +1,6 @@
 const Product = require('../models/product');
+const user = require('../models/user');
+const Order = require('../models/order');
 
 exports.getProducts = (req, res, next) => {
   Product.find()
@@ -43,15 +45,18 @@ exports.getIndex = (req, res, next) => {
 
 exports.getCart = (req, res, next) => {
   req.user
-    .getCart()
-    .then(products => {
-      res.render('shop/cart', {
-        path: '/cart',
-        pageTitle: 'Your Cart',
-        products: products
-      });
-    })
-    .catch(err => console.log(err));
+  .populate('cart.items.productId')
+  .execPopulate()
+  .then(user => {
+    res.render('shop/cart', {
+      path: '/cart',
+      pageTitle: 'Your Cart',
+      products: user.cart.items
+    });
+  })
+  .catch(err => {
+    console.log(err);
+  })
 };
 
 exports.postCart = (req, res, next) => {
@@ -68,33 +73,30 @@ exports.postCart = (req, res, next) => {
 
 exports.postCartDeleteProduct = (req, res, next) => {
   const prodId = req.body.productId;
-  req.user
-    .deleteItemFromCart(prodId)
-    .then(result => {
-      res.redirect('/cart');
-    })
-    .catch(err => console.log(err));
+  req.user.deleteItemFromCart(prodId);
+  res.redirect('/cart');
 };
 
 exports.postOrder = (req, res, next) => {
-  let fetchedCart;
-  req.user
-    .addOrder()
-    .then(result => {
-      res.redirect('/orders');
-    })
-    .catch(err => console.log(err));
+  req.user.addOrder();
+  res.redirect('/orders');
 };
 
 exports.getOrders = (req, res, next) => {
-  req.user
-    .getOrders()
-    .then(orders => {
-      res.render('shop/orders', {
-        path: '/orders',
-        pageTitle: 'Your Orders',
-        orders: orders
-      });
-    })
-    .catch(err => console.log(err));
+  let fetchedOrders;
+  Order.find({userId: req.user._id})
+  .then(orders => {
+    fetchedOrders = orders;
+    console.log('orders before populating: %o',orders);
+    return Order.populate(fetchedOrders, {path: 'items.productId'});
+  })
+  .then(result => {
+    console.log('fetched orders after population: %o',fetchedOrders);
+    res.render('shop/orders', {
+      path: '/orders',
+      pageTitle: 'Your Orders',
+      orders: fetchedOrders
+    });
+  })
+  .catch(err => console.log(err));
 };
