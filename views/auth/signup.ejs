@@ -1,11 +1,12 @@
 <%- include('../includes/head.ejs') %>
     <link rel="stylesheet" href="/css/forms.css">
     <link rel="stylesheet" href="/css/product.css">
+    <link rel="stylesheet" href="/css/error.css">
 </head>
 <body>
     <%- include('../includes/navigation.ejs') %>
     <main>
-        <form class="product-form" action="/login" method="POST">
+        <form class="product-form" action="/signup" method="POST">
             <div class="form-control">
                 <label for="email">Email</label>
                 <input type="email" name="email" id="email">
@@ -14,8 +15,12 @@
                 <label for="password">Password</label>
                 <input type="password" name="password" id="password">
             </div>
+            <div class="form-control">
+                <label for="confirmed_pwd">Confirm Password</label>
+                <input type="password" name="confirmed_pwd" id="confirmed_pwd">
+            </div>
             <div>
-                <button class="btn" type="submit">Login</button>
+                <button class="btn" type="submit">Sign Up</button>
             </div>
             <% if (form_error.trim().length != 0) { %>
                 <p class="form_errors"><%= form_error%></p>
