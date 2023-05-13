@@ -1,5 +1,17 @@
 const User = require('../models/user');
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
+const sendgridTransport = require('nodemailer-sendgrid-transport');
+const transporter = nodemailer.createTransport({
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
+    auth: {
+        user: 'trandinh88ama@gmail.com',
+        pass: 'bzbthpqaoebqsyqb' // Gmail app password, feel free to revoke
+    },
+    tls : { rejectUnauthorized: false }
+});
 
 exports.getLogin = (req,res,next) => {
     res.render('auth/login', {
@@ -85,7 +97,7 @@ exports.postSignUp = (req,res,next) => {
             });
             return;
         }    
-        // new email  & password valid => save to DB
+        // new email & password valid => save to DB
         bcrypt.hash(req.body.password, 12)
         .then(hashedPassword => {
             let newUser = new User({
@@ -96,7 +108,18 @@ exports.postSignUp = (req,res,next) => {
         })
         .then(result => {
             res.redirect('/login');
+            // Notification to user
+            // TODO: Good for small scale request throughput, for heavy load website, recommended to have
+            // a batch job (or worker processes) to asynchronously spread email to clients
+            // Good refactoring lesson to involve message queue here
+            return transporter.sendMail({
+                to: email,
+                from: "trandstore@trandcompany.com",
+                subject: 'Signup succeeeded!',
+                html: "<h1>You successfully signed up!</h1>"
+            });
         })
+        .catch(err => console.log("error: %o",err));
     })
     .catch(err => console.log(err));
 }
