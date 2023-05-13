@@ -13,37 +13,40 @@ exports.getLogin = (req,res,next) => {
 exports.postLogin = (req,res,next) => {
     let email = req.body.email;
     let password = req.body.password;
+    console.log("email: %s, password: %s",email,password);
     User.findOne({email: email})
     .then(user => {
         // authenticate
         let form_error = "";
         if (!user) {
             form_error = "User or password is not correct!"; // Security wise
+            console.log("error: %s",form_error);
         } else {
             bcrypt.compare(password, user.password)
             .then(isMatched => {
                 if (!isMatched) form_error = "User or password is not correct!"; // Security wise
+                console.log("error: %s",form_error);
+                if (form_error.trim().length != 0){
+                    res.render('auth/login', {
+                        pageTitle: 'Login',
+                        path: '/login',
+                        isAuthenticated: false,
+                        form_error: form_error
+                    });
+                    return;
+                }
+                req.session.isLoggedIn = true;
+                req.session.user = user;
+                console.log('user: %o',req.session.user);
+                // ensure session info is persisted to DB
+                req.session.save((err) => {
+                    if (err) {
+                        console.log('err: %o',err);
+                    }
+                    res.redirect('/');
+                })
             })
         }
-        if (form_error.trim().length != 0){
-            res.render('auth/login', {
-                pageTitle: 'Login',
-                path: '/login',
-                isAuthenticated: false,
-                form_error: form_error
-            });
-            return;
-        }
-        req.session.isLoggedIn = true;
-        req.session.user = user;
-        console.log('user: %o',req.session.user);
-        // ensure session info is persisted to DB
-        req.session.save((err) => {
-            if (err) {
-                console.log('err: %o',err);
-            }
-            res.redirect('/');
-        })
     })
     .catch(err => console.log(err));
 }
