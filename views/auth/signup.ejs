@@ -20,6 +20,7 @@
                 <input type="password" name="confirmed_pwd" id="confirmed_pwd">
             </div>
             <div>
+                <input type="hidden" name="_csrf" value="<%= csrfToken%>">
                 <button class="btn" type="submit">Sign Up</button>
             </div>
             <% if (form_error.trim().length != 0) { %>

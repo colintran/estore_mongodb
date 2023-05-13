@@ -5,7 +5,6 @@ exports.getLogin = (req,res,next) => {
     res.render('auth/login', {
         pageTitle: 'Login',
         path: '/login',
-        isAuthenticated: false,
         form_error: ""
     });
 }
@@ -30,7 +29,6 @@ exports.postLogin = (req,res,next) => {
                     res.render('auth/login', {
                         pageTitle: 'Login',
                         path: '/login',
-                        isAuthenticated: false,
                         form_error: form_error
                     });
                     return;
@@ -62,7 +60,6 @@ exports.getSignUp = (req,res,next) => {
     res.render('auth/signup', {
         pageTitle: 'Signup',
         path: '/signup',
-        isAuthenticated: false,
         form_error: ""
     });
 }
@@ -84,7 +81,6 @@ exports.postSignUp = (req,res,next) => {
             res.render('auth/signup', {
                 pageTitle: 'Signup',
                 path: '/signup',
-                isAuthenticated: false,
                 form_error: form_error
             });
             return;

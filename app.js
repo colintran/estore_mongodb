@@ -7,6 +7,7 @@ const session = require('express-session');
 const mongoDBStore = require('connect-mongodb-session')(session);
 const MONGO_URL = 'mongodb://localhost:27017/odm_db';
 const errorController = require('./controllers/error');
+const csrf = require('csurf');
 
 const app = express();
 
@@ -33,6 +34,10 @@ app.use(session({
   store: store
 }));
 
+// this middleware is to generate csrf token and prevent csrf attack
+const csrfProtection = csrf();
+app.use(csrfProtection);
+
 // fetch user from current session
 const User = require('./models/user');
 app.use((req,res,next) => {
@@ -43,6 +48,12 @@ app.use((req,res,next) => {
     next();
   })
   .catch(err => console.log(err));
+});
+
+app.use((req,res,next) => {
+  res.locals.isAuthenticated = req.session.isLoggedIn;
+  res.locals.csrfToken = req.csrfToken();
+  next();
 });
 
 app.use('/admin', adminRoutes);

@@ -1,10 +1,14 @@
 @keyframes show-hide {
-    0% { opacity: 1; }
-    90% { opacity: 1; }
-    100% { opacity: 0; }
-}
+    0% {
+      opacity: 1;
+    }
+    100% {
+      opacity: 0;
+      display: none;
+    }
+  }
 
 .form_errors {
-    animation: show-hide 1s ease-out;
+    animation: show-hide 5s forwards;
 }
   
