@@ -8,11 +8,32 @@ const mongoDBStore = require('connect-mongodb-session')(session);
 const MONGO_URL = 'mongodb://localhost:27017/odm_db';
 const errorController = require('./controllers/error');
 const csrf = require('csurf');
+const multer = require('multer');
 
 const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
+
+// Transformation image file uploaded
+const fileStoreage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, 'images');
+  },
+  filename: (req, file, cb) => {
+    cb(null,  Date.now() + '-' + file.originalname);
+  }
+});
+
+const fileFilter = (req,file,cb) => {
+  if (file.mimetype === 'image/png' ||
+      file.mimetype === 'image/jpg' || 
+      file.mimetype === 'image/jpeg'){
+    cb (null, true);
+  } else {
+    cb(null, false);
+  }
+};
 
 const adminRoutes = require('./routes/admin');
 const shopRoutes = require('./routes/shop');
@@ -20,7 +41,9 @@ const authRoutes = require('./routes/auth');
 const user = require('./models/user');
 
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(multer({storage: fileStoreage, fileFilter: fileFilter}).single('image'));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/images',express.static(path.join(__dirname, 'images')));
 
 const store = new mongoDBStore({
   uri: MONGO_URL,
