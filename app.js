@@ -9,6 +9,7 @@ const MONGO_URL = 'mongodb://localhost:27017/odm_db';
 const errorController = require('./controllers/error');
 const csrf = require('csurf');
 const multer = require('multer');
+const fs = require('fs');
 
 const app = express();
 
