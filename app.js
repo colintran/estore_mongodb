@@ -9,12 +9,15 @@ const MONGO_URL = 'mongodb://localhost:27017/odm_db';
 const errorController = require('./controllers/error');
 const csrf = require('csurf');
 const multer = require('multer');
-const fs = require('fs');
+const fileUtil = require('./util/file');
 
 const app = express();
 
 app.set('view engine', 'ejs');
 app.set('views', 'views');
+
+// Init folders
+fileUtil.initFolders();
 
 // Transformation image file uploaded
 const fileStoreage = multer.diskStorage({
