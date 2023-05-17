@@ -4,19 +4,37 @@ const Order = require('../models/order');
 const fs = require('fs');
 const path = require('path');
 const pdfkit = require('pdfkit');
+const ITEMS_PER_PAGE = 1;
 
 exports.getProducts = (req, res, next) => {
+  let page = 1;
+  if (req.query.page) page = parseInt(req.query.page);
+  let totalNbProducts;
   Product.find()
+  .countDocuments()
+  .then(nbProducts => {
+    totalNbProducts = nbProducts;
+    Product.find()
+    .skip((page-1) * ITEMS_PER_PAGE)
+    .limit(ITEMS_PER_PAGE)
     .then(products => {
       res.render('shop/product-list', {
         prods: products,
         pageTitle: 'All Products',
-        path: '/products'
+        path: '/products',
+        totalProducts: totalNbProducts,
+        currentPage: page,
+        lastPage: Math.ceil(totalNbProducts / ITEMS_PER_PAGE),
+        hasNextPage: page * ITEMS_PER_PAGE < totalNbProducts,
+        hasPreviousPage: page > 1,
+        previousPage: page - 1,
+        nextPage: page + 1
       });
     })
-    .catch(err => {
-      console.log(err);
-    });
+  })
+  .catch(err => {
+    console.log(err);
+  });
 };
 
 exports.getProduct = (req, res, next) => {
@@ -33,18 +51,34 @@ exports.getProduct = (req, res, next) => {
 };
 
 exports.getIndex = (req, res, next) => {
-  console.log("csrf token: %o",req.csrfToken());
+  let page = 1;
+  if (req.query.page) page = parseInt(req.query.page);
+  let totalNbProducts;
   Product.find()
+  .countDocuments()
+  .then(nbProducts => {
+    totalNbProducts = nbProducts;
+    Product.find()
+    .skip((page-1) * ITEMS_PER_PAGE)
+    .limit(ITEMS_PER_PAGE)
     .then(products => {
       res.render('shop/index', {
         prods: products,
         pageTitle: 'Shop',
-        path: '/'
+        path: '/',
+        totalProducts: totalNbProducts,
+        currentPage: page,
+        lastPage: Math.ceil(totalNbProducts / ITEMS_PER_PAGE),
+        hasNextPage: page * ITEMS_PER_PAGE < totalNbProducts,
+        hasPreviousPage: page > 1,
+        previousPage: page - 1,
+        nextPage: page + 1
       });
     })
-    .catch(err => {
-      console.log(err);
-    });
+  })
+  .catch(err => {
+    console.log(err);
+  });
 };
 
 exports.getCart = (req, res, next) => {
