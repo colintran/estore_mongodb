@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 const pdfkit = require('pdfkit');
 const ITEMS_PER_PAGE = 1;
+const stripe = require('stripe')('sk_test_51N8rwAEMJY9tpCUwCno4KmjKUSWAr8zDezwUXxMdNoBLCuEoAPjlmTSNVA1mQCVtp6H5U0twz3yXSQpisRInvGgg002oMvYlyQ');
 
 exports.getProducts = (req, res, next) => {
   let page = 1;
@@ -115,7 +116,7 @@ exports.postCartDeleteProduct = (req, res, next) => {
   res.redirect('/cart');
 };
 
-exports.postOrder = (req, res, next) => {
+exports.getCheckoutSuccess = (req, res, next) => {
   req.user.addOrder();
   res.redirect('/orders');
 };
@@ -176,4 +177,50 @@ exports.getInvoice = (req,res,next) => {
     console.log('err: %o',err);
     res.redirect('/');
   }) 
+};
+
+exports.getCheckout = (req,res,next) => {
+  let totalPrice = 0;
+  let products;
+  req.user
+  .populate('cart.items.productId')
+  .execPopulate()
+  .then(user => {
+    products = user.cart.items;
+    products.forEach(item => {
+      totalPrice += item.quantity * item.productId.price;
+    })
+    return stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      mode: 'payment',
+      line_items: products.map(p => {
+        return {
+          price_data: {
+            currency: 'usd',
+            product_data: {
+              name: p.productId.title
+            },
+            unit_amount: p.productId.price * 100
+          },
+          quantity: p.quantity
+        };
+      }),
+      // TODO: In production, never trust the success_url this way, it could be forged in client side,
+      // Instead using more secured way - webhook on server side
+      success_url: req.protocol + '://' + req.get('host') + '/checkout/success',
+      cancel_url: req.protocol + '://' + req.get('host') + '/checkout/cancel'
+    });
+  })
+  .then(session => {
+    res.render('shop/checkout',{
+      pageTitle: 'Checkout',
+      path: '/checkout',
+      products: products,
+      total: totalPrice,
+      sessionId: session.id
+    });
+  })
+  .catch(err => {
+    console.log(err);
+  })
 };

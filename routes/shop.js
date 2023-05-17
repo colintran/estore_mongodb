@@ -19,9 +19,14 @@ router.post('/cart', routeProtection.isAuth, shopController.postCart);
 
 router.post('/cart-delete-item', routeProtection.isAuth, shopController.postCartDeleteProduct);
 
-router.post('/create-order', routeProtection.isAuth, shopController.postOrder);
+router.get('/checkout', routeProtection.isAuth, shopController.getCheckout);
+
+router.get('/checkout/success', routeProtection.isAuth, shopController.getCheckoutSuccess);
+
+router.get('/checkout/cancel', routeProtection.isAuth, shopController.getCheckout);
 
 router.get('/orders', routeProtection.isAuth, shopController.getOrders);
 
 router.get('/orders/:orderId', routeProtection.isAuth, shopController.getInvoice);
+
 module.exports = router;
